@@ -6,6 +6,7 @@ import { EntitySampleWidget } from './entity';
 import { useEditorStore } from 'Src/core';
 import { DME } from 'Src/core/types';
 
+
 const { useState, useEffect } = React;
 
 export const SampleWidget = (props: DME.WidgetRenderProps<EntitySampleWidget>) => {

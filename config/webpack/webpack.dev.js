@@ -33,6 +33,10 @@ module.exports = merge(baseConfig, {
                 ],
             },
             {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader'],
+              },
+            {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
                 use: [
@@ -66,7 +70,7 @@ module.exports = merge(baseConfig, {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, '/samples/dev', 'index.html'),
+            template: path.resolve(__dirname, '../../samples/dev', 'index.html'),
             filename: 'index.html',
             hash: true,
             inject: 'head',

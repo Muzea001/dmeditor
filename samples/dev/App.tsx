@@ -4,8 +4,15 @@ import { nanoid } from 'nanoid';
 import registerSampleWidget from './SampleWidget';
 import { DMEditor } from 'Src/core';
 import { registerTheme } from 'Src/core/components/page';
+import registerTestWidget from './TestWidget';
+import registerCalenderWidget from './CalenderWidget';
+
 
 registerSampleWidget();
+registerTestWidget();
+registerCalenderWidget();
+
+
 registerTheme({
   identifier: 'red',
   name: 'Red',
