@@ -46,8 +46,8 @@ const registerCalenderWidget = () => {
           type: 'Calender',
           data: {
             settings: {
-                width: 2000,
-                height: 500,
+                width: 1070,
+                height: 1000,
                 header:'Upcoming events'
 
             },
@@ -58,6 +58,22 @@ const registerCalenderWidget = () => {
     }, CalenderWidget); 
   };
 
+
+  registerWidgetStyle('Calender', {
+    identifier: 'headerStyle',
+    name: 'Header Style',
+    display: 'inline-block',
+    options: [{
+        identifier: 'centeredBold',
+        name: 'Centered & Bold',
+        cssStyle: `
+            text-align: center;
+            font-weight: bold;
+            padding: 20px;
+        `,
+        icon: '' // Optionally specify an icon URL or class here
+    }]
+});
 
   registerWidgetStyle('Calender', {
     identifier: 'default-style',
