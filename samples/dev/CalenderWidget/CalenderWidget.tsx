@@ -160,6 +160,7 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
 
   const calendarStyle = css`
   .react-calendar {
+    widdth: 70%;
     border: none; // Example of overriding default styles
     border-radius: 8px; // Add custom border-radius
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // Add custom box-shadow
@@ -201,6 +202,7 @@ const listItemStyle = {
 
 
 const boxStyle = {
+  widdth: '30%',
   border: '2px solid #ccc', 
   padding: '20px',
   margin: '20px 0',
@@ -225,7 +227,7 @@ return (
       valueLabelDisplay="auto"
       value={width}
       step={5}
-      max={1070}
+      max={1100}
       onChange={(e, newValue) => {
         const value = Array.isArray(newValue) ? newValue[0] : newValue;
         setWidth(value);
@@ -246,15 +248,6 @@ return (
     />
 
     <div className={widgetStyle}>
-      <div>
-    <h2 style={{ 
-          fontSize: '28px', 
-          textAlign: 'center', 
-          fontWeight: 'bold' 
-        }}>
-          {header}
-        </h2>
-        </div>
       <div className="flex flex-wrap -mx-2"> 
         <div className="w-full md:w-1/2 px-2" style={boxStyle}>
           <h2>{currentMonth}</h2>
