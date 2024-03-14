@@ -46,8 +46,8 @@ const registerCalenderWidget = () => {
           type: 'Calender',
           data: {
             settings: {
-                width: 1070,
-                height: 1000,
+                width: 800,
+                height: 850,
                 header:'Upcoming events'
 
             },
