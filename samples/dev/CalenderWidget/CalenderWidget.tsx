@@ -127,12 +127,20 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
     date: new Date(),
   });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [filterTypes, setFilterTypes] = useState({   // Legger til en state for å holde filtervalg
+    meeting: true,
+    course: true,
+    tournament: true,
+    'diverse events': true,
+  });
+  const filteredEvents = events.filter(event => filterTypes[event.type]);
+
 
   // Setter innhold for kalender dersom hendelse eksisterer. setter event handlers for hover av hendelser.
 
   const tileContent = ({ date, view }) => {
     if (view === 'month') {
-      const eventToday = events.find(event => isSameDay(event.date, date));
+      const eventToday = filteredEvents.find(event => isSameDay(event.date, date));
       if (eventToday) {
 
         return (
@@ -147,6 +155,24 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
 
     return null;
   };
+
+  // UI for filtervalg
+  const renderFilterOptions = () => {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
+        {Object.keys(filterTypes).map(type => (
+          <label key={type} className="filter-option" style={{ backgroundColor: getEventStyle(type).color }}>
+            <input
+              type="checkbox"
+              checked={filterTypes[type]}
+              onChange={() => setFilterTypes(prev => ({ ...prev, [type]: !prev[type] }))}
+            /> {type}
+          </label>
+        ))}
+      </div>
+    );
+  };
+  
 
 
   const getPositionStyle = (position) => {
@@ -393,6 +419,10 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
           {position !== 'hideCalendar' && (
           <div>
             <div>
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: '50px' }}>
+                {/*<h2>{currentMonth}</h2> */}
+                {renderFilterOptions()}
+              </div>
               <Calendar
                 onChange={handleChange}
                 onActiveStartDateChange={handleActiveStartDateChange}
