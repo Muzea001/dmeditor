@@ -36,6 +36,13 @@ const registerCalenderWidget = () => {
             property: 'settings.header',
             
           },
+          {
+            name: 'Position',
+            settingComponent: 'setting_input',
+            property: 'settings.position',
+            
+          },
+
           
         
       ],

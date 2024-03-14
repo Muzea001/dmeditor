@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { css } from '@emotion/css';
 import { Slider } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { EntityCalenderWidget } from './entity';
 import { useEditorStore } from 'Src/core';
 import { DME } from 'Src/core/types';
@@ -8,6 +9,7 @@ import Calendar from 'react-calendar';
 import { format, isSameDay } from 'date-fns'
 import { CalendarEvent } from './CalenderEvent'
 import './Styles/CustomCalender.css'
+
 
 
 const { useState, useEffect } = React;
@@ -110,6 +112,7 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
   //Setter alle states for variabler i komponent.
 
   const [width, setWidth] = useState(settings.width ?? 600);
+  const [position, setPosition] = useState(settings.position ?? 'right');
   const [height, setHeight] = useState(settings.height ?? 300);
   const [header, setHeader] = useState(settings.header ?? 'Upcoming events');
   const [value, setValue] = useState<Value>(new Date());
@@ -145,6 +148,22 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
     return null;
   };
 
+
+  const getPositionStyle = (position) => {
+    switch (position) {
+      case 'left':
+        return 'row-reverse';
+      case 'right':
+        return 'row';
+      case 'above':
+        return 'column-reverse';
+      case 'below':
+        return 'column';
+      default:
+        return 'row'; 
+    }
+  };
+
   // Setter css klasse for event basert på event type.
   const tileClassName = ({ date, view }) => {
     if (view === 'month') {
@@ -162,38 +181,14 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
     setValue(nextValue);
   };
 
-  // håndterer input field for event, oppdaterer data basert på input
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setEventFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
-  };
-
   //setter current month til dagens nåværende dato ved bruk av activeStartDate.
   const handleActiveStartDateChange = ({ activeStartDate }) => {
     setCurrentMonth(format(activeStartDate, 'MMMM yyyy'));
   };
 
-  //viser add event pop-up, fjerner delete popup
-  const handleShowAddEvent = () => {
-    setShowAddEvent(true); // Show the add event popup
-    setShowDeleteConfirm(false); // Ensure the delete confirm popup is hidden
-  };
 
-  // viser delete pop-up, fjerner add pop up
-  const handleShowDeleteConfirm = () => {
-    setShowDeleteConfirm(true);
-    setShowAddEvent(false);
-  };
-  // lukker add event popup
-  const handleCloseAddEvent = () => {
-    setShowAddEvent(false);
-  };
-  // lukker delete event popup
-  const handleCloseDeleteConfirm = () => {
-    setShowDeleteConfirm(false);
+  const handlePositionChange = (event) => {
+    setPosition(event.target.value);
   };
 
   // data endring.
@@ -220,48 +215,40 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
       data.settings.header = v;
     });
   };
-
+  
   // funksjon for endring ev bredde
   const updateWidth = (e, v) => {
     updateSelectedBlock<EntityCalenderWidget>((data) => {
       data.settings.width = v;
     });
   };
-  // håndterer adding av event, sender data til backend, lukker adding pop-up ved ved bekreftelse
-  const handleAddEvent = (e) => {
-    e.preventDefault();
-    console.log(eventFormData);
-    setShowAddEvent(false);
-    setEventFormData({
-      title: '',
-      type: '',
-      description: '',
-      link: '',
-      date: new Date(),
+
+  const updatePosition = (e, v) => {
+    updateSelectedBlock<EntityCalenderWidget>((data) => {
+      data.settings.position = v;
     });
   };
 
   // css style for hele widget.
   const widgetStyle = css`
-  display: flex; // Use flexbox for layout
-  flex-direction: row; // Align children in a row
-  justify-content: space-around; // Distribute space around the items
-  align-items: flex-start; // Align items at the start of the container
+  display: flex;
+  flex-direction: ${getPositionStyle(position)}; // Dynamically set based on position state
+  justify-content: space-around;
+  align-items: flex-start;
   max-width: 100%;
   height: ${height}px;
-  width: ${width}px; // Parent div width
-  border: 1px solid #ccc; // Just for visual confirmation
-  box-sizing: border-box; // Include padding and border in the element's total width and height
-  padding: 20px; // Padding inside the parent div
+  width: ${width}px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  padding: 20px;
   overflow: scroll;
-  > * { /* Direct children, adjust as needed */
-  flex-grow: 1; /* Allow children to grow and fill the space */
-  max-height: 100%; /* Prevent them from exceeding the container's height */
-  overflow: scroll; /* Hide overflow, if scaling down is preferred */
-}
+  > * {
+    flex-grow: 1;
+    max-height: 100%;
+    overflow: scroll;
+  }
   
 `;
-
   // css style for event elementer inn i liste
   const listItemStyle = {
     listStyleType: 'none',
@@ -324,12 +311,29 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
           updateHeight(e, value);
         }}
       />
+        <FormControl fullWidth>
+        <InputLabel id="position-select-label">Position</InputLabel>
+        <Select
+          labelId="position-select-label"
+          id="position-select"
+          value={position}
+          label="Position / Visibility"
+          onChange={handlePositionChange}
+        >
+          <MenuItem value="left">Left</MenuItem>
+          <MenuItem value="right">Right</MenuItem>
+          <MenuItem value="above">Above</MenuItem>
+          <MenuItem value="below">Below</MenuItem>
+          <MenuItem value="hideEventList">Hide Event List</MenuItem>
+          <MenuItem value="hideCalendar">Hide Calendar</MenuItem>
+        </Select>
+      </FormControl>
       {/*tittel rendering med egen styling */}
       <h2 style={{ textAlign: 'center', fontWeight: 'bold', padding: '10px' }}>{header}</h2>
       {/*wrapper alle div's innen widget style css klassen, og flex wrap tailwind klasser for responsivitet */}
       <div className={widgetStyle}>
-        <div className="flex flex-wrap -mx-2">
-          <div className="w-full md:w-1/2 px-2" style={boxStyle}>
+      {position !== 'hideEventList' && (
+          <div style={boxStyle}>
             {/*Event liste rendering, starter med filter, mapper elementer og henter farger, starter med første to */}
             <h2>{currentMonth}</h2>
             <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '20px' }}>
@@ -382,172 +386,12 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
               ))}
               {/*knapper for edit, add og delete */}
             </ul>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-              <button
-                style={{
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  backgroundColor: 'green',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '5px',
-                }}
-              >
-            //
-              </button>
-
-
-              <button onClick={handleShowAddEvent} style={{
-                fontSize: '24px',
-                cursor: 'pointer',
-                backgroundColor: '#008CBA',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '5px',
-              }}>+</button>
-
-              <button onClick={handleShowDeleteConfirm}
-                style={{
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  backgroundColor: 'red',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '5px',
-                }}
-              >
-                --
-              </button>
-            </div>
-            {/* rendering av popup vindu for sletting av events*/}
-            {showDeleteConfirm && (
-              <div style={{
-                position: 'fixed',
-                top: '60%',
-                left: '40%',
-                transform: 'translate(-50%, -50%)',
-                backgroundColor: '#fff',
-                padding: '20px',
-                borderRadius: '5px',
-                zIndex: 1000,
-                border: '1px solid black'
-              }}>
-                <h3>Are you sure you want to delete this element?</h3>
-                <div>
-                  {/* This list will contain the elements to be deleted in the future */}
-                  <select style={{ display: 'block', marginBottom: '20px' }}>
-                    {/* Option elements go here */}
-                  </select>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-                  <button
-                    onClick={handleCloseDeleteConfirm}
-                    style={{
-                      cursor: 'pointer',
-                      backgroundColor: 'grey',
-                      color: 'white',
-                      border: 'none',
-                      padding: '10px 20px',
-                      borderRadius: '5px',
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleCloseDeleteConfirm}
-                    style={{
-                      cursor: 'pointer',
-                      backgroundColor: 'red',
-                      color: 'white',
-                      border: 'none',
-                      padding: '10px 20px',
-                      borderRadius: '5px',
-                    }}
-                  >
-                    Confirm
-                  </button>
-                </div>
-              </div>
-            )}
-            {/* Rendering av add event pop-up vindu*/}
-            {showAddEvent && (
-              <div style={{
-                position: 'fixed',
-                top: '60%', left: '40%',
-                transform: 'translate(-50%, -50%)',
-                backgroundColor: '#fff',
-                padding: '20px',
-                borderRadius: '5px',
-                border: '1px solid black',
-                zIndex: 1000
-              }}>
-                <h3>Add New Event</h3>
-                <form onSubmit={handleAddEvent} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <input
-                    type="text"
-                    name="title"
-                    value={eventFormData.title}
-                    onChange={handleFormChange}
-                    placeholder="Event Title"
-                    style={{ margin: '5px 0' }}
-                  />
-                  <select
-                    name="type"
-                    value={eventFormData.type}
-                    onChange={handleFormChange}
-                    style={{ margin: '5px 0' }} 
-                  >
-                    {['meeting', 'course', 'tournament', 'diverse events'].map((eventType) => (
-                      <option key={eventType} value={eventType}>{eventType}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    name="description"
-                    value={eventFormData.description}
-                    onChange={handleFormChange}
-                    placeholder="Description"
-                    style={{ margin: '5px 0' }}
-                  />
-                  <input
-                    type="text"
-                    name="link"
-                    value={eventFormData.link}
-                    onChange={handleFormChange}
-                    placeholder="Link"
-                    style={{ margin: '5px 0' }} 
-                  />
-                  <input
-                    type="date"
-                    name="date"
-                    value={eventFormData.date.toISOString().substring(0, 10)}
-                    onChange={handleFormChange}
-                    style={{ margin: '5px 0' }} 
-                  />
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <button
-                      type="button"
-                      onClick={handleCloseAddEvent}
-                      style={{ margin: '5px 0' }} 
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      style={{ margin: '5px 0' }} 
-                    >
-                      Add Event
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
+           </div>
+      )}
+           
           {/*Rendering av kalender, kaller tag script av importert kalender og warpper i tailwind */}
-          <div className="w-full md:w-1/2 px-2 flex items-center justify-center" style={{ height: '50vh' }}>
+          {position !== 'hideCalendar' && (
+          <div>
             <div>
               <Calendar
                 onChange={handleChange}
@@ -574,8 +418,8 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
               </div>
             )}
           </div>
+          )}
         </div>
-      </div>
     </div>
   );
 

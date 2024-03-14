@@ -3,5 +3,6 @@ export interface EntityCalenderWidget{
         width: number;
         height: number;
         header: string;
+        position: string;
     };
   }
