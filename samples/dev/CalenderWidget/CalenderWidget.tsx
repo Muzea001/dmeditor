@@ -35,6 +35,7 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
       .course-tile { background-color: lightblue !important; }
       .tournament-tile { background-color: lightgreen !important; }
       .diverse-event-tile { background-color: pink !important; }
+      .multi-event { background-color: gray !important; }
     `;
     document.head.appendChild(style);
   };
@@ -75,6 +76,14 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
       link: 'https://oslomet.no'
     },
     {
+      id: '7',
+      date: new Date(2024, 4, 13),
+      title: 'diverse',
+      type: 'diverse events',
+      description: 'Advancedt',
+      link: 'https://oslomet.no'
+    },
+    {
       id: '5',
       date: new Date(2024, 4, 13),
       title: 'Møtet',
@@ -101,6 +110,7 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
       'course': { className: 'course-tile', color: 'lightblue' },
       'tournament': { className: 'tournament-tile', color: 'lightgreen' },
       'diverse events': { className: 'diverse-event-tile', color: 'pink' },
+      'multi-event': { className: 'multi-event', color: 'gray' },
     };
 
 
@@ -117,8 +127,12 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
   const [header, setHeader] = useState(settings.header ?? 'Upcoming events');
   const [value, setValue] = useState<Value>(new Date());
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'MMMM yyyy'));
-  const [hoveredEvent, setHoveredEvent] = useState<CalendarEvent | null>(null);
+  //const [hoveredEvent, setHoveredEvent] = useState<CalendarEvent | null>(null);
+  const [hoveredEvent, setHoveredEvent] = useState<CalendarEvent[]>([]); // hoveredEvent is now an array
+  //console.log(hoveredEvent);
   const [showAddEvent, setShowAddEvent] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
   const [eventFormData, setEventFormData] = useState({
     title: '',
     type: '',
@@ -137,65 +151,47 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
 
 
   // Setter innhold for kalender dersom hendelse eksisterer. setter event handlers for hover av hendelser.
-
-  const tileContent = ({ date, view }) => {
+  function isSameCalendarDay(date1: Date, date2: Date) {
+    return date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate();
+  }
+  const tileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
-      const eventToday = filteredEvents.find(event => isSameDay(event.date, date));
-      if (eventToday) {
-
+      const eventsToday = events.filter(event => isSameCalendarDay(event.date, date));
+      
+      if (eventsToday.length > 0) {
         return (
           <div
             style={{ width: '100%', height: '100%', cursor: 'pointer' }}
-            onMouseEnter={() => setHoveredEvent(eventToday)}
-            onMouseLeave={() => setHoveredEvent(null)}
-          />
+            onMouseEnter={(e) => {
+              setHoveredEvent(eventsToday);
+              // Update the mouse position state
+              setMousePosition({ x: e.clientX, y: e.clientY });
+            }}
+            onMouseLeave={() => setHoveredEvent([])}
+          >
+            {eventsToday.map((event, index) => (
+              <div key={index}>
+                {/* Display event details here */}
+              </div>
+            ))}
+          </div>
         );
       }
     }
-
     return null;
   };
-
-  // UI for filtervalg
-  const renderFilterOptions = () => {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
-        {Object.keys(filterTypes).map(type => (
-          <label key={type} className="filter-option" style={{ backgroundColor: getEventStyle(type).color }}>
-            <input
-              type="checkbox"
-              checked={filterTypes[type]}
-              onChange={() => setFilterTypes(prev => ({ ...prev, [type]: !prev[type] }))}
-            /> {type}
-          </label>
-        ))}
-      </div>
-    );
-  };
   
-
-
-  const getPositionStyle = (position) => {
-    switch (position) {
-      case 'left':
-        return 'row-reverse';
-      case 'right':
-        return 'row';
-      case 'above':
-        return 'column-reverse';
-      case 'below':
-        return 'column';
-      default:
-        return 'row'; 
-    }
-  };
 
   // Setter css klasse for event basert på event type.
   const tileClassName = ({ date, view }) => {
     if (view === 'month') {
-      const eventToday = events.find(event => isSameDay(event.date, date));
-      if (eventToday) {
-        return getEventStyle(eventToday.type).className;
+      const eventsToday = events.filter(event => isSameCalendarDay(event.date, date));
+      if (eventsToday.length > 1) {
+        return getEventStyle('multi-event').className; // Return the class for 'multi-event'
+      } else if (eventsToday.length === 1) {
+        return getEventStyle(eventsToday[0].type).className;
       }
     }
     return null;
@@ -432,21 +428,28 @@ export const CalenderWidget = (props: DME.WidgetRenderProps<EntityCalenderWidget
               />
             </div>
             {/* Rendering av hover vindu for hendelser i kalender*/}
-            {hoveredEvent && (
+            {hoveredEvent && hoveredEvent.length > 0 && (
               <div className="event-card" style={{
                 position: 'absolute',
+                left: `${mousePosition.x}px`,
+                top: `${mousePosition.y}px`,
+                transform: 'translate(0px, 0px)',
                 zIndex: 10,
                 border: '1px solid black',
                 padding: '10px',
-                backgroundColor: getEventStyle(hoveredEvent.type).color,
-                top: '60%',
-                right: '40%',
+                backgroundColor: 'white', // You can adjust the background as needed
+                pointerEvents: 'none',
               }}>
-                <h3>{hoveredEvent.title}</h3>
-                <p>Date: {hoveredEvent.date.toLocaleDateString()}</p>
-
+                {hoveredEvent.map((event, index) => (
+                  <div key={index} style={{marginBottom: '5px'}}>
+                    <h3>{event.title}</h3>
+                    <p>Date: {event.date.toLocaleDateString()}</p>
+                    {/* Add more details as needed */}
+                  </div>
+                ))}
               </div>
             )}
+
           </div>
           )}
         </div>

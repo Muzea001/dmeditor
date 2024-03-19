@@ -46,7 +46,7 @@ export const dmeditorEditCss = css`
       width: var(--dme-layout-tool-width);
     }
   }
-
+  
   //preview
   .layout-main.viewmode-tablet {
     width: 768px;
